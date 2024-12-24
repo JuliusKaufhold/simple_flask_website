@@ -1,45 +1,57 @@
 {% extends "base.html" %}
 {% block content %}
-    <div class="container">
-        <h1>Add User</h1>
-        <form action="/add" method="POST">
-            <label for="name">Name:</label>
-            <input type="text" id="name" name="name" required>
+	{% if user.is_authenticated %}
+	    <div class="container">
+		<h1>Add Animal</h1>
+		<form action="/add" method="POST">
+		    <label for="name">Name:</label>
+		    <input type="text" id="name" name="name" required>
 
-            <label for="life_exp">Life Expectation:</label>
-            <input type="number" id="life_exp" name="life_exp" required>
+		    <label for="life_exp">Life Expectancy:</label>
+		    <input type="text" id="life_exp" name="life_exp" required>
 
-	    <button type="submit">Submit</button>
-        </form>
+		    <button type="submit">Add</button>
+		</form>
 
-	<form action="/add_random" method = "POST">
-		<button type="submit">Random</button>
-	</form>
+		<form action="/add_random" method = "POST">
+			<label for="animal">Get lifespan of animal:</label>
+			<input type="text" id="animal_name" name="animal_name" required>
 
-	<form action="/del_user" method = "POST">
-		<label for="deluser">User to delete</label>
-		<input type="number" id="del_user" name="del_user">
-		<button type="submit">Delete</button>
-	</form>
+			<button type="submit">Get lifespan</button>
+		</form>
 
-        <h2>Existing users</h2>
-        <table>
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Name</th>
-                    <th>Email</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for user in users %}
-                <tr>
-                    <td>{{ user.id }}</td>
-                    <td>{{ user.name }}</td>
-                    <td>{{ user.email }}</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
+		<h3>{{ animal_data_name }}: {{ animal_lifespan }}</h3>
+
+		<form action="/del_animal" method = "POST">
+			<label for="delanimal">Animal to delete</label>
+			<input type="number" id="del_animal" name="del_animal">
+			<button type="submit">Delete</button>
+		</form>
+
+		<h2>Animals</h2>
+		<table>
+		    <thead>
+			<tr>
+			    <th>ID</th>
+			    <th>Name</th>
+			    <th>Life Expectancy</th>
+			</tr>
+		    </thead>
+		    <tbody>
+			{% for animal in user.animals %}
+			<tr>
+			    <td>{{ animal.id }}</td>
+			    <td>{{ animal.name }}</td>
+			    <td>{{ animal.life_expectation }}</td>
+			</tr>
+			{% endfor %}
+		    </tbody>
+		</table>
+	    </div>
+	{% else %}
+		<div class=container>
+			<h1> animal database website</h1>
+			<h2> log in or create an account to use!</h2>
+		</div>
+	{% endif %}
 {% endblock %}
