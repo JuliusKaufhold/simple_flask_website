@@ -1,11 +1,13 @@
-from app import app
-from flask import Flask, render_template, request, redirect, flash,url_for
+from flask import Flask, render_template, request, redirect, flash,url_for, Blueprint
 from flask_sqlalchemy import SQLAlchemy
 import requests
 import os
 from app.forms import LoginForm
 from flask_login import LoginManager,UserMixin,login_user,login_required,logout_user,current_user
 from werkzeug.security import generate_password_hash, check_password_hash
+from app import db,login_manager
+
+bp = Blueprint("main",__name__)
 
 # API
 api_animal_facts = "https://api.api-ninjas.com/v1/animals?name={}"
@@ -13,13 +15,6 @@ api_key=os.getenv("API_KEY")
 headers= {
     'X-Api-Key': f"{api_key}"
 }
-#db init
-db = SQLAlchemy(app)
-
-#login init
-login_manager = LoginManager()
-login_manager.login_view = "app.login"
-login_manager.init_app(app)
 
 # model for users table
 class User(db.Model,UserMixin):
@@ -36,19 +31,19 @@ class Animal(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey("user.id"))
 
 # create table in database
-with app.app_context():
-    db.create_all()
+#with app.app_context():
+    #db.create_all()
 
 @login_manager.user_loader
 def load_user(id):
     return User.query.get(int(id))
 
-@app.route("/")
+@bp.route("/")
 def index():
     animals = Animal.query.all()  # Alle Benutzer aus der Datenbank abrufen
     return render_template("index.html", animals=animals, user=current_user)
 
-@app.route("/add", methods=["POST"])
+@bp.route("/add", methods=["POST"])
 def add_animal():
     name = request.form["name"]
     life_exp = request.form["life_exp"]
@@ -60,9 +55,9 @@ def add_animal():
 
     except Exception as e:
         print(e)
-    return redirect(url_for("index"))
+    return redirect(url_for("main.index"))
 
-@app.route("/add_random", methods=["POST"])
+@bp.route("/add_random", methods=["POST"])
 def add_random_animal():
     name = request.form["animal_name"]
     try:
@@ -77,21 +72,22 @@ def add_random_animal():
     except Exception as e:
         print(e)
 
-    return redirect(url_for("index"))
+    return redirect(url_for("main.index"))
 
-@app.route("/del_animal", methods=["POST"])
+@bp.route("/del_animal", methods=["POST"])
 def delete_animal():
     animal_id = request.form["del_animal"]
     try:
         animal = db.session.get(Animal,animal_id)
-        db.session.delete(animal)
-        db.session.commit()
+        if animal.user_id==current_user.id:
+            db.session.delete(animal)
+            db.session.commit()
     except Exception as e:
         print(e)
 
-    return redirect("/")
+    return redirect(url_for("main.index"))
 
-@app.route("/login", methods=["GET","POST"])
+@bp.route("/login", methods=["GET","POST"])
 def login():
     form = LoginForm()
     email = form.username.data
@@ -105,14 +101,14 @@ def login():
             if check_password_hash(user.password,password):
                 flash("Login successful")
                 login_user(user,remember=form.remember_me.data)
-                return redirect(url_for("index"))
+                return redirect(url_for("main.index"))
             else:
                 flash("Incorrect password.")
         else:
             flash("Email doesn't exist.")
     return render_template("login.html", title="Sign In", form=form, user=current_user)
 
-@app.route("/signup", methods=["POST","GET"])
+@bp.route("/signup", methods=["POST","GET"])
 def signup():
     form=LoginForm()
     if request.method=="POST":
@@ -128,17 +124,17 @@ def signup():
             db.session.add(user)
             db.session.commit()
             login_user(user,remember=form.remember_me.data)
-            return redirect(url_for("index"))
+            return redirect(url_for("main.index"))
     return render_template("signup.html",form=form, user=current_user)
 
 
-@app.route("/logout")
+@bp.route("/logout")
 def logout():
     try:
         logout_user()
     except Exception as e:
         print(e)
-    return redirect(url_for("login"))
+    return redirect(url_for("main.login"))
 
 
 
