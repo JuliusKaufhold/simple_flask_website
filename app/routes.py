@@ -8,7 +8,6 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from app import db,login_manager
 
 bp = Blueprint("main",__name__)
-
 # API
 api_animal_facts = "https://api.api-ninjas.com/v1/animals?name={}"
 api_key=os.getenv("API_KEY")
@@ -29,10 +28,6 @@ class Animal(db.Model):
     name = db.Column(db.String(100), nullable = False)
     life_expectation = db.Column(db.String(100), nullable = True)
     user_id = db.Column(db.Integer, db.ForeignKey("user.id"))
-
-# create table in database
-#with app.app_context():
-    #db.create_all()
 
 @login_manager.user_loader
 def load_user(id):
@@ -57,12 +52,13 @@ def add_animal():
         print(e)
     return redirect(url_for("main.index"))
 
-@bp.route("/add_random", methods=["POST"])
-def add_random_animal():
+@bp.route("/get_info", methods=["POST"])
+def get_info():
     name = request.form["animal_name"]
     try:
         response = requests.get(api_animal_facts.format(name), headers=headers)
-
+        print (response.status_code)
+        print (response.json())
         if response.status_code==200:
             random_animal = response.json()
 
