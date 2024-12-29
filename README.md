@@ -17,11 +17,9 @@ Before running the app, make sure you have Docker installed and activated on you
 docker --version
 ```
 
-Additionally, you will need an **API key** to access the animal data from the external API. To obtain the API key:
-1. Go to [api-ninjas.com](https://api-ninjas.com/)
-2. Create an account and get your personal API key.
+Additionally, you will need an **API key** for openai.
 
-If you do not want to use the external API, no worries! The rest of the app will work perfectly fine without it.
+If you do not want to use the ai-functionality, no worries! The rest of the app will work perfectly fine without it.
 
 ## Setup Instructions
 
@@ -63,7 +61,7 @@ docker run --name mysql -d -e MYSQL_RANDOM_ROOT_PASSWORD=yes -e MYSQL_DATABASE=w
 
 ### Step 5: Start the Server Container
 
-Now, start the Flask server container. If you have an API key, replace `<your-api-key>` with your actual API key from [api-ninjas.com](https://api-ninjas.com/):
+Now, start the Flask server container. If you have an API key, replace `<your-api-key>` with your actual API key:
 
 ```bash
 docker run --name webserver -d -p 8000:5000 --rm -e SECRET_KEY=my-secret-key -e DATABASE_URL=mysql+pymysql://webserver:changeme@mysql/webserver -e API_KEY=<your-api-key> webserver:latest
@@ -83,6 +81,6 @@ You should see the website and be able to interact with it, including logging in
 
 ## Troubleshooting
 
-- **API Key Error**: If you see an "Invalid API Key" error, make sure you have correctly set the `API_KEY` environment variable in the server container.
+- **API Key Error**: If you see an "Invalid API Key" error, make sure you have correctly set the `API_KEY` environment variable in the server container. If you still have issues, try priting out the error code and visit openai for more information.
 - **Docker Network Issues**: If you encounter any issues with Docker networks, ensure that the containers are on the same network (`webserver-network`).
 - **Database Issues**: Make sure to wait at least a few seconds after creating and starting the database container. It needs to be fully set up so that the server container can successfully connect to it.

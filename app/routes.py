@@ -6,16 +6,18 @@ from app.forms import LoginForm
 from flask_login import LoginManager,UserMixin,login_user,login_required,logout_user,current_user
 from werkzeug.security import generate_password_hash, check_password_hash
 from app import db,login_manager
+import json
 
 bp = Blueprint("main",__name__)
 # API
-api_animal_facts = "https://api.api-ninjas.com/v1/animals?name={}"
+api_openai = "https://api.openai.com/v1/chat/completions"
 api_key=os.getenv("API_KEY")
-headers= {
-    'X-Api-Key': f"{api_key}"
+headers = {
+    "Content-Type": "application/json",
+    "Authorization": f"Bearer {api_key}"
 }
 
-# model for users table
+# model for users and animal table
 class User(db.Model,UserMixin):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
@@ -35,14 +37,13 @@ def load_user(id):
 
 @bp.route("/")
 def index():
-    animals = Animal.query.all()  # Alle Benutzer aus der Datenbank abrufen
+    animals = Animal.query.all()
     return render_template("index.html", animals=animals, user=current_user)
 
 @bp.route("/add", methods=["POST"])
 def add_animal():
     name = request.form["name"]
     life_exp = request.form["life_exp"]
-    # create new user
     try:
         new_animal = Animal(name=name, life_expectation=life_exp, user_id=current_user.id)
         db.session.add(new_animal)
@@ -54,16 +55,24 @@ def add_animal():
 
 @bp.route("/get_info", methods=["POST"])
 def get_info():
-    name = request.form["animal_name"]
+    input = request.form["userinput"]
     try:
-        response = requests.get(api_animal_facts.format(name), headers=headers)
-        print (response.status_code)
-        print (response.json())
+        data = {
+            "model": "gpt-3.5-turbo",
+            "messages": [
+                {"role": "system", "content": "You are an assistant that is supposed to give answers about animal data as short as possible"},
+                {"role": "user", "content": "{}".format(input)}
+            ],
+        "temperature": 0.7
+        }
+        response = requests.post(api_openai, headers=headers, data=json.dumps(data))
+        print(response.status_code)
+        print(response.json())
         if response.status_code==200:
-            random_animal = response.json()
+            result = response.json()
 
-            life_exp = random_animal[0]["characteristics"]["lifespan"]
-            return render_template("index.html",animal_lifespan=life_exp,animal_data_name=name, user=current_user)
+            chatgpt_response = result["choices"][0]["message"]["content"]
+            return render_template("index.html", gptresponse=chatgpt_response, user=current_user)
 
     except Exception as e:
         print(e)

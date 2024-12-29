@@ -14,13 +14,13 @@
 		</form>
 
 		<form action="/get_info" method = "POST">
-			<label for="animal">Get lifespan of animal:</label>
-			<input type="text" id="animal_name" name="animal_name" required>
+			<label for="userquestion">Don't know data? Ask AI!</label>
+			<input type="text" id="userinput" name="userinput" required>
 
-			<button type="submit">Get lifespan</button>
+			<button type="submit">Get response</button>
 		</form>
 
-		<h3>{{ animal_data_name }}: {{ animal_lifespan }}</h3>
+		<h3>{{ gptresponse }}</h3>
 
 		<form action="/del_animal" method = "POST">
 			<label for="delanimal">Animal to delete</label>
@@ -34,7 +34,7 @@
 			<tr>
 			    <th>ID</th>
 			    <th>Name</th>
-			    <th>Life Expectancy</th>
+			    <th>Lifespan</th>
 			</tr>
 		    </thead>
 		    <tbody>
